@@ -1,5 +1,6 @@
 import heroShowcaseImg from '../assets/images/hero_studio_showcase_1794735689052.jpg';
 import hairsInnImg from '../assets/images/hairs_inn_bridal_1794735689157.jpg';
+import sizzleHouseImg from '../assets/images/sizzle_house_restaurant_1794764982969.jpg';
 import aboutStudioImg from '../assets/images/about_studio_space_1794735690314.jpg';
 
 /**
@@ -20,7 +21,7 @@ export const STUDIO_CONTACT = {
  * theatre modal when clicking "Watch Project".
  */
 export const NERA_VILLA_VIDEO_CONFIG = {
-  localVideoSrc: '/assets/aistudio/A_PRIVATE_ESCAPE_20261115_122637_0000_3f9be690.mp4',
+  localVideoSrc: '/assets/aistudio/A_PRIVATE_ESCAPE_20261116_081708_0000_2fe46471.mp4',
   externalVideoUrl: '',
 } as const;
 
@@ -97,7 +98,24 @@ export const MAIN_SERVICES: MainServiceCategory[] = [
   },
 ];
 
-export const WEBSITE_PROJECT = {
+export interface WebsiteProjectItem {
+  id: string;
+  name: string;
+  category: string;
+  conceptLabel?: string;
+  description: string;
+  liveUrl: string;
+  buttonLabel: string;
+  domainPreview: string;
+  image: string;
+  imageAlt: string;
+  previewTopNav: string;
+  previewTagline: string;
+  previewHeadline: string;
+  previewCta: string;
+}
+
+export const WEBSITE_PROJECT: WebsiteProjectItem = {
   id: 'hairs-inn-bridal-studio',
   name: "Hair's Inn Bridal Studio",
   category: 'Website Projects',
@@ -105,14 +123,39 @@ export const WEBSITE_PROJECT = {
   description:
     'An unofficial concept website designed to showcase how a bridal studio can present its services, portfolio, and brand online.',
   liveUrl: 'https://hair-s-inn-bridal-st-ecoo.bolt.host/',
+  buttonLabel: 'View Website',
   domainPreview: 'hair-s-inn-bridal-st-ecoo.bolt.host',
   image: hairsInnImg,
   imageAlt:
     "Hair's Inn Bridal Studio website concept featuring a calm travertine bridal vanity and hair styling scene",
+  previewTopNav: 'Services · Bridal Work · Enquiries',
   previewTagline: 'Bridal Hair & Beauty Atelier',
   previewHeadline: 'Timeless bridal artistry crafted for your milestone day.',
   previewCta: 'Explore Services',
-} as const;
+};
+
+export const SIZZLE_HOUSE_PROJECT: WebsiteProjectItem = {
+  id: 'the-sizzle-house',
+  name: 'THE SIZZLE HOUSE',
+  category: 'Restaurant Website Design',
+  description:
+    'A premium restaurant website concept designed to showcase delicious food, an elegant dining experience and a modern restaurant brand.',
+  liveUrl: 'https://upscale-restaurant-w-pyb2.bolt.host',
+  buttonLabel: 'VIEW LIVE DEMO',
+  domainPreview: 'upscale-restaurant-w-pyb2.bolt.host',
+  image: sizzleHouseImg,
+  imageAlt:
+    'THE SIZZLE HOUSE upscale contemporary restaurant interior with warm evening lighting and plated dish',
+  previewTopNav: 'Menu · Reservations · Dining',
+  previewTagline: 'Contemporary Dining & Grill',
+  previewHeadline: 'Elevated dishes, warm ambiance, and a modern dining experience.',
+  previewCta: 'Explore Menu',
+};
+
+export const WEBSITE_PROJECTS: WebsiteProjectItem[] = [
+  WEBSITE_PROJECT,
+  SIZZLE_HOUSE_PROJECT,
+];
 
 export const VIDEO_PROJECT = {
   id: 'nera-villa-private-escape',

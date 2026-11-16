@@ -12,9 +12,10 @@ import {
   Maximize2,
 } from 'lucide-react';
 import {
-  WEBSITE_PROJECT,
+  WEBSITE_PROJECTS,
   VIDEO_PROJECT,
   type EnquiryServiceType,
+  type WebsiteProjectItem,
 } from '../config/studioConfig';
 import { Reveal } from './Reveal';
 import { VideoModal } from './VideoModal';
@@ -23,8 +24,176 @@ interface PortfolioProps {
   onContactUs: (serviceType?: EnquiryServiceType) => void;
 }
 
+function WebsiteProjectCard({
+  project,
+  onContactUs,
+}: {
+  project: WebsiteProjectItem;
+  onContactUs: (serviceType?: EnquiryServiceType) => void;
+}) {
+  const [viewport, setViewport] = useState<'desktop' | 'mobile'>('desktop');
+
+  return (
+    <article className="rounded-2xl bg-[#11131A] border border-white/[0.09] hover:border-[#8B7CFF]/45 transition-colors duration-200 p-6 sm:p-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        {/* Browser Mockup Frame */}
+        <div className="lg:col-span-7">
+          <div className="rounded-xl bg-[#08090D] border border-white/[0.1] overflow-hidden">
+            <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 bg-[#0C0E14] border-b border-white/[0.07]">
+              <div className="flex items-center gap-1.5 shrink-0" aria-hidden="true">
+                <span className="w-2 h-2 rounded-full bg-white/15" />
+                <span className="w-2 h-2 rounded-full bg-white/15" />
+                <span className="w-2 h-2 rounded-full bg-white/15" />
+              </div>
+
+              <div className="flex-1 min-w-0 px-2.5 py-0.5 rounded bg-[#11131A] border border-white/[0.06] text-[11px] font-mono text-[#A1A1AA] truncate text-center">
+                {project.domainPreview}
+              </div>
+
+              <div className="flex items-center gap-0.5 p-0.5 rounded bg-[#11131A] border border-white/[0.06] shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setViewport('desktop')}
+                  aria-label={`Desktop mockup view for ${project.name}`}
+                  aria-pressed={viewport === 'desktop'}
+                  className={`p-1 rounded transition-colors cursor-pointer ${
+                    viewport === 'desktop'
+                      ? 'bg-[#8B7CFF] text-white'
+                      : 'text-[#A1A1AA] hover:text-white'
+                  }`}
+                >
+                  <Monitor className="w-3 h-3" aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewport('mobile')}
+                  aria-label={`Mobile mockup view for ${project.name}`}
+                  aria-pressed={viewport === 'mobile'}
+                  className={`p-1 rounded transition-colors cursor-pointer ${
+                    viewport === 'mobile'
+                      ? 'bg-[#8B7CFF] text-white'
+                      : 'text-[#A1A1AA] hover:text-white'
+                  }`}
+                >
+                  <Smartphone className="w-3 h-3" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+
+            <div className="relative aspect-[16/10] bg-[#08090D] flex items-center justify-center overflow-hidden">
+              {viewport === 'desktop' ? (
+                <div className="relative w-full h-full group">
+                  <img
+                    src={project.image}
+                    alt={project.imageAlt}
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                  />
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-0 bg-gradient-to-t from-[#08090D] via-[#08090D]/35 to-black/20"
+                  />
+                  <div className="absolute inset-x-0 top-0 px-4 py-3 flex items-center justify-between text-[11px] text-white/85">
+                    <span className="font-display font-semibold tracking-wide">
+                      {project.name}
+                    </span>
+                    <span className="text-white/70 hidden sm:inline">
+                      {project.previewTopNav}
+                    </span>
+                  </div>
+                  <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
+                    <p className="text-[11px] font-mono text-[#8B7CFF] mb-1">
+                      {project.previewTagline}
+                    </p>
+                    <p className="font-display text-base sm:text-lg font-semibold text-white leading-snug max-w-md">
+                      {project.previewHeadline}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="h-[88%] aspect-[9/16] rounded-xl border-2 border-white/20 bg-[#11131A] overflow-hidden shadow-2xl flex flex-col">
+                  <div className="h-4 bg-[#0C0E14] border-b border-white/10 flex items-center justify-center">
+                    <span className="w-6 h-1 rounded-full bg-white/20" />
+                  </div>
+                  <div className="relative flex-1 overflow-hidden">
+                    <img
+                      src={project.image}
+                      alt={project.imageAlt}
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover"
+                    />
+                    <div
+                      aria-hidden="true"
+                      className="absolute inset-0 bg-gradient-to-t from-[#08090D] via-[#08090D]/40 to-transparent"
+                    />
+                    <div className="absolute inset-x-0 bottom-0 p-3 space-y-1">
+                      <p className="text-[9px] font-mono text-[#8B7CFF] truncate">
+                        {project.previewTagline}
+                      </p>
+                      <p className="font-display text-xs font-semibold text-white leading-tight">
+                        {project.name}
+                      </p>
+                      <span className="inline-block mt-1 px-2 py-0.5 rounded bg-[#8B7CFF] text-[9px] font-medium text-white">
+                        {project.previewCta}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Project Details */}
+        <div className="lg:col-span-5 space-y-5">
+          <p className="text-xs text-[#A1A1AA] leading-relaxed">
+            <span className="text-[#8B7CFF] font-medium">{project.category}</span>
+            {project.conceptLabel && (
+              <>
+                <span aria-hidden="true" className="mx-1.5 text-white/30">
+                  ·
+                </span>
+                <span>{project.conceptLabel}</span>
+              </>
+            )}
+          </p>
+
+          <h4 className="font-display text-2xl sm:text-3xl font-bold text-white tracking-tight">
+            {project.name}
+          </h4>
+
+          <p className="text-sm sm:text-base text-[#A1A1AA] leading-relaxed">
+            {project.description}
+          </p>
+
+          <div className="pt-2 flex flex-wrap items-center gap-3">
+            <a
+              href={project.liveUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-[#8B7CFF] hover:bg-[#7A69FF] text-white text-sm font-semibold transition-colors duration-150 whitespace-nowrap"
+            >
+              <span>{project.buttonLabel}</span>
+              <ExternalLink className="w-4 h-4" aria-hidden="true" />
+            </a>
+
+            <button
+              type="button"
+              onClick={() => onContactUs('Website Development')}
+              className="inline-flex items-center justify-center px-4 py-3 rounded-lg bg-[#08090D] hover:bg-[#171A24] border border-white/15 hover:border-[#8B7CFF]/50 text-white text-sm font-medium transition-colors duration-150 whitespace-nowrap cursor-pointer"
+            >
+              Request Similar Site
+            </button>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export function Portfolio({ onContactUs }: PortfolioProps) {
-  const [websiteViewport, setWebsiteViewport] = useState<'desktop' | 'mobile'>('desktop');
   const [isPlayingInline, setIsPlayingInline] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
@@ -84,171 +253,24 @@ export function Portfolio({ onContactUs }: PortfolioProps) {
 
         <div className="space-y-14">
           {/* CATEGORY 1: WEBSITE PROJECTS */}
-          <Reveal>
-            <div className="space-y-5">
+          <div className="space-y-6">
+            <Reveal>
               <div className="flex items-center gap-3 border-b border-white/[0.08] pb-3.5">
                 <Globe className="w-4 h-4 text-[#8B7CFF]" aria-hidden="true" />
                 <h3 className="font-display text-lg sm:text-xl font-semibold text-white tracking-tight">
                   Website Projects
                 </h3>
               </div>
+            </Reveal>
 
-              <article className="rounded-2xl bg-[#11131A] border border-white/[0.09] hover:border-[#8B7CFF]/45 transition-colors duration-200 p-6 sm:p-8">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-                  {/* Browser Mockup Frame */}
-                  <div className="lg:col-span-7">
-                    <div className="rounded-xl bg-[#08090D] border border-white/[0.1] overflow-hidden">
-                      <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 bg-[#0C0E14] border-b border-white/[0.07]">
-                        <div className="flex items-center gap-1.5 shrink-0" aria-hidden="true">
-                          <span className="w-2 h-2 rounded-full bg-white/15" />
-                          <span className="w-2 h-2 rounded-full bg-white/15" />
-                          <span className="w-2 h-2 rounded-full bg-white/15" />
-                        </div>
-
-                        <div className="flex-1 min-w-0 px-2.5 py-0.5 rounded bg-[#11131A] border border-white/[0.06] text-[11px] font-mono text-[#A1A1AA] truncate text-center">
-                          {WEBSITE_PROJECT.domainPreview}
-                        </div>
-
-                        <div className="flex items-center gap-0.5 p-0.5 rounded bg-[#11131A] border border-white/[0.06] shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => setWebsiteViewport('desktop')}
-                            aria-label="Desktop mockup view for Hair's Inn Bridal Studio"
-                            aria-pressed={websiteViewport === 'desktop'}
-                            className={`p-1 rounded transition-colors cursor-pointer ${
-                              websiteViewport === 'desktop'
-                                ? 'bg-[#8B7CFF] text-white'
-                                : 'text-[#A1A1AA] hover:text-white'
-                            }`}
-                          >
-                            <Monitor className="w-3 h-3" aria-hidden="true" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setWebsiteViewport('mobile')}
-                            aria-label="Mobile mockup view for Hair's Inn Bridal Studio"
-                            aria-pressed={websiteViewport === 'mobile'}
-                            className={`p-1 rounded transition-colors cursor-pointer ${
-                              websiteViewport === 'mobile'
-                                ? 'bg-[#8B7CFF] text-white'
-                                : 'text-[#A1A1AA] hover:text-white'
-                            }`}
-                          >
-                            <Smartphone className="w-3 h-3" aria-hidden="true" />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="relative aspect-[16/10] bg-[#08090D] flex items-center justify-center overflow-hidden">
-                        {websiteViewport === 'desktop' ? (
-                          <div className="relative w-full h-full group">
-                            <img
-                              src={WEBSITE_PROJECT.image}
-                              alt={WEBSITE_PROJECT.imageAlt}
-                              loading="lazy"
-                              referrerPolicy="no-referrer"
-                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-                            />
-                            <div
-                              aria-hidden="true"
-                              className="absolute inset-0 bg-gradient-to-t from-[#08090D] via-[#08090D]/35 to-black/20"
-                            />
-                            <div className="absolute inset-x-0 top-0 px-4 py-3 flex items-center justify-between text-[11px] text-white/85">
-                              <span className="font-display font-semibold tracking-wide">
-                                {WEBSITE_PROJECT.name}
-                              </span>
-                              <span className="text-white/70 hidden sm:inline">
-                                Services · Bridal Work · Enquiries
-                              </span>
-                            </div>
-                            <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
-                              <p className="text-[11px] font-mono text-[#8B7CFF] mb-1">
-                                {WEBSITE_PROJECT.previewTagline}
-                              </p>
-                              <p className="font-display text-base sm:text-lg font-semibold text-white leading-snug max-w-md">
-                                {WEBSITE_PROJECT.previewHeadline}
-                              </p>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="h-[88%] aspect-[9/16] rounded-xl border-2 border-white/20 bg-[#11131A] overflow-hidden shadow-2xl flex flex-col">
-                            <div className="h-4 bg-[#0C0E14] border-b border-white/10 flex items-center justify-center">
-                              <span className="w-6 h-1 rounded-full bg-white/20" />
-                            </div>
-                            <div className="relative flex-1 overflow-hidden">
-                              <img
-                                src={WEBSITE_PROJECT.image}
-                                alt={WEBSITE_PROJECT.imageAlt}
-                                loading="lazy"
-                                referrerPolicy="no-referrer"
-                                className="w-full h-full object-cover"
-                              />
-                              <div
-                                aria-hidden="true"
-                                className="absolute inset-0 bg-gradient-to-t from-[#08090D] via-[#08090D]/40 to-transparent"
-                              />
-                              <div className="absolute inset-x-0 bottom-0 p-3 space-y-1">
-                                <p className="text-[9px] font-mono text-[#8B7CFF] truncate">
-                                  {WEBSITE_PROJECT.previewTagline}
-                                </p>
-                                <p className="font-display text-xs font-semibold text-white leading-tight">
-                                  {WEBSITE_PROJECT.name}
-                                </p>
-                                <span className="inline-block mt-1 px-2 py-0.5 rounded bg-[#8B7CFF] text-[9px] font-medium text-white">
-                                  {WEBSITE_PROJECT.previewCta}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Project Details */}
-                  <div className="lg:col-span-5 space-y-5">
-                    <p className="text-xs text-[#A1A1AA] leading-relaxed">
-                      <span className="text-[#8B7CFF] font-medium">
-                        {WEBSITE_PROJECT.category}
-                      </span>
-                      <span aria-hidden="true" className="mx-1.5 text-white/30">
-                        ·
-                      </span>
-                      <span>{WEBSITE_PROJECT.conceptLabel}</span>
-                    </p>
-
-                    <h4 className="font-display text-2xl sm:text-3xl font-bold text-white tracking-tight">
-                      {WEBSITE_PROJECT.name}
-                    </h4>
-
-                    <p className="text-sm sm:text-base text-[#A1A1AA] leading-relaxed">
-                      {WEBSITE_PROJECT.description}
-                    </p>
-
-                    <div className="pt-2 flex flex-wrap items-center gap-3">
-                      <a
-                        href={WEBSITE_PROJECT.liveUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-[#8B7CFF] hover:bg-[#7A69FF] text-white text-sm font-semibold transition-colors duration-150 whitespace-nowrap"
-                      >
-                        <span>View Website</span>
-                        <ExternalLink className="w-4 h-4" aria-hidden="true" />
-                      </a>
-
-                      <button
-                        type="button"
-                        onClick={() => onContactUs('Website Development')}
-                        className="inline-flex items-center justify-center px-4 py-3 rounded-lg bg-[#08090D] hover:bg-[#171A24] border border-white/15 hover:border-[#8B7CFF]/50 text-white text-sm font-medium transition-colors duration-150 whitespace-nowrap cursor-pointer"
-                      >
-                        Request Similar Site
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </article>
+            <div className="space-y-6">
+              {WEBSITE_PROJECTS.map((project, index) => (
+                <Reveal key={project.id} delay={index * 0.06}>
+                  <WebsiteProjectCard project={project} onContactUs={onContactUs} />
+                </Reveal>
+              ))}
             </div>
-          </Reveal>
+          </div>
 
           {/* CATEGORY 2: PROMOTIONAL VIDEO PROJECTS */}
           <Reveal delay={0.08}>
