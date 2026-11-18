@@ -130,7 +130,7 @@ export function Footer({ onSelectService }: FooterProps) {
               <li>
                 <button
                   type="button"
-                  onClick={() => onSelectService('Both (Website + Promotional Video)')}
+                  onClick={() => onSelectService('Both')}
                   className="text-sm text-[#A1A1AA] hover:text-white transition-colors text-left cursor-pointer"
                 >
                   Website + Video Package
@@ -146,13 +146,14 @@ export function Footer({ onSelectService }: FooterProps) {
             </p>
             <ul className="space-y-2.5">
               <li>
-                <a
-                  href={`mailto:${STUDIO_CONTACT.email}`}
-                  className="inline-flex items-center gap-2 text-sm text-[#A1A1AA] hover:text-white transition-colors break-all"
+                <button
+                  type="button"
+                  onClick={() => scrollToSection('contact')}
+                  className="inline-flex items-center gap-2 text-sm text-[#A1A1AA] hover:text-white transition-colors break-all text-left cursor-pointer"
                 >
                   <Mail className="w-4 h-4 text-[#8B7CFF] shrink-0" aria-hidden="true" />
                   <span>{STUDIO_CONTACT.email}</span>
-                </a>
+                </button>
               </li>
               <li>
                 <a

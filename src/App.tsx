@@ -13,7 +13,7 @@ import type { EnquiryServiceType } from './config/studioConfig';
 
 export default function App() {
   const [selectedService, setSelectedService] =
-    useState<EnquiryServiceType>('Website Development');
+    useState<EnquiryServiceType>('Website Design');
 
   const scrollToSection = (sectionId: string) => {
     const target = document.getElementById(sectionId);
@@ -50,7 +50,7 @@ export default function App() {
         <Portfolio onContactUs={(serviceType) => handleInquireService(serviceType)} />
 
         <WhyPromotionalVideos
-          onRequestVideo={() => handleInquireService('Promotional Video')}
+          onRequestVideo={() => handleInquireService('Promotional Videos')}
         />
 
         <WhyPixelcraft />

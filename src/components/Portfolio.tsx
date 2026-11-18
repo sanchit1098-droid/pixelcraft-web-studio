@@ -181,7 +181,7 @@ function WebsiteProjectCard({
 
             <button
               type="button"
-              onClick={() => onContactUs('Website Development')}
+              onClick={() => onContactUs('Website Design')}
               className="inline-flex items-center justify-center px-4 py-3 rounded-lg bg-[#08090D] hover:bg-[#171A24] border border-white/15 hover:border-[#8B7CFF]/50 text-white text-sm font-medium transition-colors duration-150 whitespace-nowrap cursor-pointer"
             >
               Request Similar Site
@@ -431,7 +431,7 @@ export function Portfolio({ onContactUs }: PortfolioProps) {
       <VideoModal
         isOpen={isVideoModalOpen}
         onClose={() => setIsVideoModalOpen(false)}
-        onEnquireVideo={() => onContactUs('Promotional Video')}
+        onEnquireVideo={() => onContactUs('Promotional Videos')}
       />
     </section>
   );

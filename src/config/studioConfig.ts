@@ -48,9 +48,9 @@ export const NAV_LINKS: NavLinkItem[] = [
 ];
 
 export type EnquiryServiceType =
-  | 'Website Development'
-  | 'Promotional Video'
-  | 'Both (Website + Promotional Video)';
+  | 'Website Design'
+  | 'Promotional Videos'
+  | 'Both';
 
 export interface MainServiceCategory {
   id: 'website-development' | 'promotional-video';
@@ -77,7 +77,7 @@ export const MAIN_SERVICES: MainServiceCategory[] = [
       'Portfolio websites',
       'Website redesign',
     ],
-    enquiryValue: 'Website Development',
+    enquiryValue: 'Website Design',
     ctaLabel: 'I Need a Website',
   },
   {
@@ -94,7 +94,7 @@ export const MAIN_SERVICES: MainServiceCategory[] = [
       'Brand introduction videos',
       'AI-assisted promotional video concepts',
     ],
-    enquiryValue: 'Promotional Video',
+    enquiryValue: 'Promotional Videos',
     ctaLabel: 'I Need a Promotional Video',
   },
 ];

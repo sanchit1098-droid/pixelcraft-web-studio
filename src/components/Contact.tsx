@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import {
   Mail,
   Instagram,
@@ -7,6 +7,8 @@ import {
   Send,
   ExternalLink,
   AlertCircle,
+  CheckCircle2,
+  Loader2,
   Globe,
   Film,
 } from 'lucide-react';
@@ -22,16 +24,18 @@ interface FormValues {
   businessName: string;
   email: string;
   phone: string;
-  serviceType: EnquiryServiceType;
-  projectDetails: string;
+  service: EnquiryServiceType;
+  budget: string;
+  message: string;
+  websiteUrl: string; // honeypot
 }
 
 type FormErrors = Partial<Record<keyof FormValues, string>>;
 
 const ENQUIRY_SERVICE_OPTIONS: EnquiryServiceType[] = [
-  'Website Development',
-  'Promotional Video',
-  'Both (Website + Promotional Video)',
+  'Website Design',
+  'Promotional Videos',
+  'Both',
 ];
 
 export function Contact({ preselectedService }: ContactProps) {
@@ -40,23 +44,32 @@ export function Contact({ preselectedService }: ContactProps) {
     businessName: '',
     email: '',
     phone: '',
-    serviceType: 'Website Development',
-    projectDetails: '',
+    service: 'Website Design',
+    budget: '',
+    message: '',
+    websiteUrl: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
-  const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
   const [copiedEmail, setCopiedEmail] = useState(false);
-  const [copiedBrief, setCopiedBrief] = useState(false);
+  const formStartedAtRef = useRef<number>(Date.now());
 
   useEffect(() => {
     setValues((prev) => ({
       ...prev,
-      serviceType: preselectedService,
+      service: preselectedService,
     }));
   }, [preselectedService]);
 
   const selectQuickOption = (option: EnquiryServiceType) => {
-    setValues((prev) => ({ ...prev, serviceType: option }));
+    setValues((prev) => ({ ...prev, service: option }));
+    if (submitStatus?.type === 'success') {
+      setSubmitStatus(null);
+    }
     const nameInput = document.getElementById('fullName');
     if (nameInput instanceof HTMLInputElement) {
       nameInput.focus({ preventScroll: true });
@@ -68,64 +81,118 @@ export function Contact({ preselectedService }: ContactProps) {
     if (!values.fullName.trim() || values.fullName.trim().length < 2) {
       nextErrors.fullName = 'Please enter your full name.';
     }
-    if (!values.businessName.trim()) {
-      nextErrors.businessName = 'Please enter your business or brand name.';
-    }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!values.email.trim() || !emailRegex.test(values.email.trim())) {
       nextErrors.email = 'Please enter a valid email address.';
     }
-    const phoneDigits = values.phone.replace(/[^\d+]/g, '');
-    if (!values.phone.trim() || phoneDigits.length < 7) {
+    const phoneDigits = values.phone.replace(/[^\d]/g, '');
+    if (!values.phone.trim() || phoneDigits.length < 7 || phoneDigits.length > 15) {
       nextErrors.phone = 'Please enter a valid phone number.';
     }
-    if (!values.serviceType) {
-      nextErrors.serviceType = 'Please select what you need.';
+    if (!ENQUIRY_SERVICE_OPTIONS.includes(values.service)) {
+      nextErrors.service = 'Please select a service option.';
     }
-    if (!values.projectDetails.trim() || values.projectDetails.trim().length < 15) {
-      nextErrors.projectDetails =
-        'Please share a short overview of your project (at least 15 characters).';
+    if (!values.message.trim() || values.message.trim().length < 15) {
+      nextErrors.message =
+        'Please share your project requirements (at least 15 characters).';
     }
     return nextErrors;
   };
 
-  const buildFormattedMessage = () => {
-    return [
-      `Hello PIXELCRAFT STUDIO,`,
-      ``,
-      `I would like to discuss a project:`,
-      `• Full Name: ${values.fullName.trim()}`,
-      `• Business Name: ${values.businessName.trim()}`,
-      `• Email Address: ${values.email.trim()}`,
-      `• Phone Number: ${values.phone.trim()}`,
-      `• Service Needed: ${values.serviceType}`,
-      ``,
-      `Project Details:`,
-      `${values.projectDetails.trim()}`,
-    ].join('\n');
-  };
-
-  const buildMailtoUrl = () => {
-    const subject = `${values.serviceType} Enquiry — ${values.businessName.trim() || values.fullName.trim()}`;
-    const body = buildFormattedMessage();
-    return `mailto:${STUDIO_CONTACT.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  };
-
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     const validationErrors = validate();
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) {
-      setSubmitted(false);
+      setSubmitStatus(null);
       return;
     }
-    setSubmitted(true);
+
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+
+    try {
+      const response = await fetch('/api/enquiry', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: values.fullName.trim(),
+          businessName: values.businessName.trim(),
+          email: values.email.trim(),
+          phone: values.phone.trim(),
+          service: values.service,
+          budget: values.budget.trim(),
+          message: values.message.trim(),
+          websiteUrl: values.websiteUrl,
+          formStartedAt: formStartedAtRef.current,
+        }),
+      });
+
+      let data: {
+        ok?: boolean;
+        message?: string;
+        error?: string;
+        fieldErrors?: Record<string, string>;
+      } = {};
+
+      try {
+        data = (await response.json()) as typeof data;
+      } catch {
+        data = {};
+      }
+
+      if (!response.ok || !data.ok) {
+        if (data.fieldErrors) {
+          setErrors(data.fieldErrors as FormErrors);
+        }
+        setSubmitStatus({
+          type: 'error',
+          text:
+            data.error ||
+            'Something went wrong while submitting your enquiry. Please try again.',
+        });
+        return;
+      }
+
+      setValues({
+        fullName: '',
+        businessName: '',
+        email: '',
+        phone: '',
+        service: preselectedService,
+        budget: '',
+        message: '',
+        websiteUrl: '',
+      });
+      setErrors({});
+      formStartedAtRef.current = Date.now();
+      setSubmitStatus({
+        type: 'success',
+        text:
+          data.message ||
+          "Thank you for contacting PixelCraft Studio! Your enquiry has been submitted successfully. We'll get back to you soon.",
+      });
+    } catch {
+      setSubmitStatus({
+        type: 'error',
+        text: 'Network error while sending your enquiry. Please check your connection and try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (field: keyof FormValues, value: string) => {
     setValues((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+    if (submitStatus) {
+      setSubmitStatus(null);
     }
   };
 
@@ -139,20 +206,6 @@ export function Contact({ preselectedService }: ContactProps) {
     }
   };
 
-  const handleCopyBrief = async () => {
-    try {
-      await navigator.clipboard.writeText(buildFormattedMessage());
-      setCopiedBrief(true);
-      setTimeout(() => setCopiedBrief(false), 2000);
-    } catch {
-      // Clipboard unavailable
-    }
-  };
-
-  const directMailtoUrl = `mailto:${STUDIO_CONTACT.email}?subject=${encodeURIComponent(
-    'New Project Enquiry — PIXELCRAFT STUDIO',
-  )}`;
-
   return (
     <section
       id="contact"
@@ -160,7 +213,7 @@ export function Contact({ preselectedService }: ContactProps) {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-start">
-          {/* Left Column: Enquiry Quick Options & Direct Channels */}
+          {/* Left Column: Enquiry Quick Options & Direct Contact Info */}
           <Reveal className="lg:col-span-5 space-y-8">
             <div className="space-y-3">
               <p className="text-xs font-medium tracking-[0.18em] text-[#8B7CFF]">
@@ -183,9 +236,9 @@ export function Contact({ preselectedService }: ContactProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => selectQuickOption('Website Development')}
+                  onClick={() => selectQuickOption('Website Design')}
                   className={`flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl border text-sm font-semibold transition-all duration-150 cursor-pointer whitespace-nowrap ${
-                    values.serviceType === 'Website Development'
+                    values.service === 'Website Design'
                       ? 'bg-[#8B7CFF] border-[#8B7CFF] text-white shadow-[0_6px_24px_rgba(139,124,255,0.3)]'
                       : 'bg-[#11131A] border-white/[0.1] hover:border-[#8B7CFF]/50 text-white'
                   }`}
@@ -196,9 +249,9 @@ export function Contact({ preselectedService }: ContactProps) {
 
                 <button
                   type="button"
-                  onClick={() => selectQuickOption('Promotional Video')}
+                  onClick={() => selectQuickOption('Promotional Videos')}
                   className={`flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl border text-sm font-semibold transition-all duration-150 cursor-pointer whitespace-nowrap ${
-                    values.serviceType === 'Promotional Video'
+                    values.service === 'Promotional Videos'
                       ? 'bg-[#8B7CFF] border-[#8B7CFF] text-white shadow-[0_6px_24px_rgba(139,124,255,0.3)]'
                       : 'bg-[#11131A] border-white/[0.1] hover:border-[#8B7CFF]/50 text-white'
                   }`}
@@ -209,26 +262,20 @@ export function Contact({ preselectedService }: ContactProps) {
               </div>
             </div>
 
-            {/* Direct Contact Buttons */}
+            {/* Studio Email Display Card (No mailto link) & Instagram Profile */}
             <div className="space-y-3.5 pt-2 border-t border-white/[0.08]">
-              {/* Email Contact Button */}
-              <div className="flex items-center justify-between gap-3 p-4 rounded-xl bg-[#11131A] border border-white/[0.08] hover:border-[#8B7CFF]/50 transition-colors duration-150">
-                <a
-                  href={directMailtoUrl}
-                  className="flex items-center gap-3.5 min-w-0 flex-1 group"
-                >
+              <div className="flex items-center justify-between gap-3 p-4 rounded-xl bg-[#11131A] border border-white/[0.08]">
+                <div className="flex items-center gap-3.5 min-w-0 flex-1">
                   <div className="w-10 h-10 rounded-lg bg-[#08090D] border border-white/[0.08] flex items-center justify-center shrink-0">
                     <Mail className="w-5 h-5 text-[#8B7CFF]" aria-hidden="true" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-white group-hover:text-[#8B7CFF] transition-colors">
-                      Email Studio
-                    </p>
+                    <p className="text-sm font-semibold text-white">Studio Email</p>
                     <p className="text-xs text-[#A1A1AA] truncate">
                       {STUDIO_CONTACT.email}
                     </p>
                   </div>
-                </a>
+                </div>
                 <button
                   type="button"
                   onClick={handleCopyEmail}
@@ -280,7 +327,7 @@ export function Contact({ preselectedService }: ContactProps) {
             </div>
           </Reveal>
 
-          {/* Right Column: Validated Project Enquiry Form */}
+          {/* Right Column: Server-Backed Enquiry Form */}
           <Reveal delay={0.08} className="lg:col-span-7">
             <form
               id="contact-form"
@@ -288,8 +335,22 @@ export function Contact({ preselectedService }: ContactProps) {
               noValidate
               className="rounded-2xl bg-[#11131A] border border-white/[0.1] p-6 sm:p-8 space-y-5"
             >
+              {/* Hidden Honeypot Field for Automated Spam Protection */}
+              <div className="sr-only" aria-hidden="true">
+                <label htmlFor="websiteUrl">Leave this field empty</label>
+                <input
+                  id="websiteUrl"
+                  name="websiteUrl"
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={values.websiteUrl}
+                  onChange={(e) => handleChange('websiteUrl', e.target.value)}
+                />
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                {/* Full Name */}
+                {/* Full Name (Required) */}
                 <div className="space-y-1.5">
                   <label
                     htmlFor="fullName"
@@ -302,11 +363,12 @@ export function Contact({ preselectedService }: ContactProps) {
                     name="fullName"
                     type="text"
                     required
+                    disabled={isSubmitting}
                     value={values.fullName}
                     onChange={(e) => handleChange('fullName', e.target.value)}
                     aria-invalid={Boolean(errors.fullName)}
                     placeholder="Your Name"
-                    className={`w-full px-4 py-3 rounded-lg bg-[#08090D] border text-sm text-white placeholder:text-[#A1A1AA]/50 transition-colors ${
+                    className={`w-full px-4 py-3 rounded-lg bg-[#08090D] border text-sm text-white placeholder:text-[#A1A1AA]/50 transition-colors disabled:opacity-60 ${
                       errors.fullName
                         ? 'border-rose-400/80'
                         : 'border-white/[0.1] focus:border-[#8B7CFF]'
@@ -323,43 +385,30 @@ export function Contact({ preselectedService }: ContactProps) {
                   )}
                 </div>
 
-                {/* Business Name */}
+                {/* Business Name (Optional) */}
                 <div className="space-y-1.5">
                   <label
                     htmlFor="businessName"
                     className="block text-xs font-medium text-white/90"
                   >
-                    Business Name <span className="text-[#8B7CFF]">*</span>
+                    Business Name{' '}
+                    <span className="text-[#A1A1AA] font-normal">(Optional)</span>
                   </label>
                   <input
                     id="businessName"
                     name="businessName"
                     type="text"
-                    required
+                    disabled={isSubmitting}
                     value={values.businessName}
                     onChange={(e) => handleChange('businessName', e.target.value)}
-                    aria-invalid={Boolean(errors.businessName)}
                     placeholder="Your Brand or Company"
-                    className={`w-full px-4 py-3 rounded-lg bg-[#08090D] border text-sm text-white placeholder:text-[#A1A1AA]/50 transition-colors ${
-                      errors.businessName
-                        ? 'border-rose-400/80'
-                        : 'border-white/[0.1] focus:border-[#8B7CFF]'
-                    } focus:outline-none`}
+                    className="w-full px-4 py-3 rounded-lg bg-[#08090D] border border-white/[0.1] focus:border-[#8B7CFF] text-sm text-white placeholder:text-[#A1A1AA]/50 transition-colors disabled:opacity-60 focus:outline-none"
                   />
-                  {errors.businessName && (
-                    <p
-                      role="alert"
-                      className="flex items-center gap-1.5 text-xs text-rose-400"
-                    >
-                      <AlertCircle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-                      <span>{errors.businessName}</span>
-                    </p>
-                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                {/* Email Address */}
+                {/* Email Address (Required) */}
                 <div className="space-y-1.5">
                   <label
                     htmlFor="email"
@@ -372,11 +421,12 @@ export function Contact({ preselectedService }: ContactProps) {
                     name="email"
                     type="email"
                     required
+                    disabled={isSubmitting}
                     value={values.email}
                     onChange={(e) => handleChange('email', e.target.value)}
                     aria-invalid={Boolean(errors.email)}
                     placeholder="you@company.com"
-                    className={`w-full px-4 py-3 rounded-lg bg-[#08090D] border text-sm text-white placeholder:text-[#A1A1AA]/50 transition-colors ${
+                    className={`w-full px-4 py-3 rounded-lg bg-[#08090D] border text-sm text-white placeholder:text-[#A1A1AA]/50 transition-colors disabled:opacity-60 ${
                       errors.email
                         ? 'border-rose-400/80'
                         : 'border-white/[0.1] focus:border-[#8B7CFF]'
@@ -393,7 +443,7 @@ export function Contact({ preselectedService }: ContactProps) {
                   )}
                 </div>
 
-                {/* Phone Number */}
+                {/* Phone Number (Required) */}
                 <div className="space-y-1.5">
                   <label
                     htmlFor="phone"
@@ -406,11 +456,12 @@ export function Contact({ preselectedService }: ContactProps) {
                     name="phone"
                     type="tel"
                     required
+                    disabled={isSubmitting}
                     value={values.phone}
                     onChange={(e) => handleChange('phone', e.target.value)}
                     aria-invalid={Boolean(errors.phone)}
                     placeholder="+91 98000 00000"
-                    className={`w-full px-4 py-3 rounded-lg bg-[#08090D] border text-sm text-white placeholder:text-[#A1A1AA]/50 transition-colors ${
+                    className={`w-full px-4 py-3 rounded-lg bg-[#08090D] border text-sm text-white placeholder:text-[#A1A1AA]/50 transition-colors disabled:opacity-60 ${
                       errors.phone
                         ? 'border-rose-400/80'
                         : 'border-white/[0.1] focus:border-[#8B7CFF]'
@@ -428,122 +479,138 @@ export function Contact({ preselectedService }: ContactProps) {
                 </div>
               </div>
 
-              {/* Service Needed: Website Development, Promotional Video, or Both */}
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="serviceType"
-                  className="block text-xs font-medium text-white/90"
-                >
-                  What Do You Need? <span className="text-[#8B7CFF]">*</span>
-                </label>
-                <select
-                  id="serviceType"
-                  name="serviceType"
-                  value={values.serviceType}
-                  onChange={(e) =>
-                    handleChange('serviceType', e.target.value as EnquiryServiceType)
-                  }
-                  className="w-full px-4 py-3 rounded-lg bg-[#08090D] border border-white/[0.1] focus:border-[#8B7CFF] text-sm text-white focus:outline-none transition-colors"
-                >
-                  {ENQUIRY_SERVICE_OPTIONS.map((option) => (
-                    <option key={option} value={option} className="bg-[#11131A] text-white">
-                      {option}
-                    </option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {/* Service Interested In */}
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="service"
+                    className="block text-xs font-medium text-white/90"
+                  >
+                    Service Interested In <span className="text-[#8B7CFF]">*</span>
+                  </label>
+                  <select
+                    id="service"
+                    name="service"
+                    disabled={isSubmitting}
+                    value={values.service}
+                    onChange={(e) =>
+                      handleChange('service', e.target.value as EnquiryServiceType)
+                    }
+                    className="w-full px-4 py-3 rounded-lg bg-[#08090D] border border-white/[0.1] focus:border-[#8B7CFF] text-sm text-white focus:outline-none transition-colors disabled:opacity-60"
+                  >
+                    {ENQUIRY_SERVICE_OPTIONS.map((option) => (
+                      <option
+                        key={option}
+                        value={option}
+                        className="bg-[#11131A] text-white"
+                      >
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Project Budget (Optional) */}
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="budget"
+                    className="block text-xs font-medium text-white/90"
+                  >
+                    Project Budget{' '}
+                    <span className="text-[#A1A1AA] font-normal">(Optional)</span>
+                  </label>
+                  <input
+                    id="budget"
+                    name="budget"
+                    type="text"
+                    disabled={isSubmitting}
+                    value={values.budget}
+                    onChange={(e) => handleChange('budget', e.target.value)}
+                    placeholder="e.g. Flexible, ₹25,000, or $500 – $1,500"
+                    className="w-full px-4 py-3 rounded-lg bg-[#08090D] border border-white/[0.1] focus:border-[#8B7CFF] text-sm text-white placeholder:text-[#A1A1AA]/50 transition-colors disabled:opacity-60 focus:outline-none"
+                  />
+                </div>
               </div>
 
-              {/* Project Details */}
+              {/* Message / Project Requirements (Required) */}
               <div className="space-y-1.5">
                 <label
-                  htmlFor="projectDetails"
+                  htmlFor="message"
                   className="block text-xs font-medium text-white/90"
                 >
-                  Project Details <span className="text-[#8B7CFF]">*</span>
+                  Message / Project Requirements <span className="text-[#8B7CFF]">*</span>
                 </label>
                 <textarea
-                  id="projectDetails"
-                  name="projectDetails"
+                  id="message"
+                  name="message"
                   rows={4}
                   required
-                  value={values.projectDetails}
-                  onChange={(e) => handleChange('projectDetails', e.target.value)}
-                  aria-invalid={Boolean(errors.projectDetails)}
-                  placeholder="Tell us about your business, whether you need a website, a promotional video, or both, and what you want to showcase..."
-                  className={`w-full px-4 py-3 rounded-lg bg-[#08090D] border text-sm text-white placeholder:text-[#A1A1AA]/50 transition-colors resize-y ${
-                    errors.projectDetails
+                  disabled={isSubmitting}
+                  value={values.message}
+                  onChange={(e) => handleChange('message', e.target.value)}
+                  aria-invalid={Boolean(errors.message)}
+                  placeholder="Tell us about your business, goals, timeline, or what you would like to build..."
+                  className={`w-full px-4 py-3 rounded-lg bg-[#08090D] border text-sm text-white placeholder:text-[#A1A1AA]/50 transition-colors resize-y disabled:opacity-60 ${
+                    errors.message
                       ? 'border-rose-400/80'
                       : 'border-white/[0.1] focus:border-[#8B7CFF]'
                   } focus:outline-none`}
                 />
-                {errors.projectDetails && (
+                {errors.message && (
                   <p
                     role="alert"
                     className="flex items-center gap-1.5 text-xs text-rose-400"
                   >
                     <AlertCircle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-                    <span>{errors.projectDetails}</span>
+                    <span>{errors.message}</span>
                   </p>
                 )}
               </div>
 
-              {/* Honest Working Submission Action */}
+              {/* Submit Enquiry Button */}
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-lg bg-[#8B7CFF] hover:bg-[#7A69FF] text-white text-sm font-semibold transition-colors duration-150 cursor-pointer"
+                  disabled={isSubmitting}
+                  className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-lg bg-[#8B7CFF] hover:bg-[#7A69FF] disabled:bg-[#8B7CFF]/60 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors duration-150 cursor-pointer"
                 >
-                  <Send className="w-4 h-4" aria-hidden="true" />
-                  <span>Prepare Email Enquiry</span>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                      <span>Submitting Enquiry...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" aria-hidden="true" />
+                      <span>Submit Enquiry</span>
+                    </>
+                  )}
                 </button>
               </div>
 
-              {/* Honest Ready-to-Send Confirmation Panel */}
-              {submitted && (
+              {/* Server Response Feedback Banner */}
+              {submitStatus && (
                 <div
-                  role="status"
+                  role={submitStatus.type === 'error' ? 'alert' : 'status'}
                   aria-live="polite"
-                  className="mt-4 rounded-xl bg-[#08090D] border border-[#8B7CFF]/45 p-5 space-y-4"
+                  className={`rounded-xl p-4 border flex items-start gap-3 ${
+                    submitStatus.type === 'success'
+                      ? 'bg-emerald-500/10 border-emerald-400/35 text-emerald-200'
+                      : 'bg-rose-500/10 border-rose-400/35 text-rose-200'
+                  }`}
                 >
-                  <div className="space-y-1">
-                    <p className="text-sm font-semibold text-white">
-                      Your project brief is validated and ready to send
-                    </p>
-                    <p className="text-xs text-[#A1A1AA] leading-relaxed">
-                      This site operates without a server-side mail backend, so click below
-                      to send your pre-filled enquiry directly to{' '}
-                      <span className="text-white">{STUDIO_CONTACT.email}</span> or copy
-                      the formatted text.
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-3">
-                    <a
-                      href={buildMailtoUrl()}
-                      className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#8B7CFF] hover:bg-[#7A69FF] text-white text-xs font-semibold transition-colors"
-                    >
-                      <Mail className="w-3.5 h-3.5" aria-hidden="true" />
-                      <span>Open Email App</span>
-                    </a>
-
-                    <button
-                      type="button"
-                      onClick={handleCopyBrief}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-lg bg-[#11131A] hover:bg-[#171A24] border border-white/15 text-xs font-medium text-[#A1A1AA] hover:text-white transition-colors cursor-pointer"
-                    >
-                      {copiedBrief ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 text-[#8B7CFF]" aria-hidden="true" />
-                          <span>Brief Copied</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3.5 h-3.5" aria-hidden="true" />
-                          <span>Copy Brief</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
+                  {submitStatus.type === 'success' ? (
+                    <CheckCircle2
+                      className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    <AlertCircle
+                      className="w-5 h-5 text-rose-400 shrink-0 mt-0.5"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <p className="text-sm leading-relaxed">{submitStatus.text}</p>
                 </div>
               )}
             </form>
