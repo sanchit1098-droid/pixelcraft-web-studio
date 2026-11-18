@@ -1,4 +1,4 @@
-import { Mail, MessageCircle } from 'lucide-react';
+import { Mail, Instagram } from 'lucide-react';
 import {
   MAIN_SERVICES,
   NAV_LINKS,
@@ -147,22 +147,22 @@ export function Footer({ onSelectService }: FooterProps) {
             <ul className="space-y-2.5">
               <li>
                 <a
-                  href={`https://wa.me/${STUDIO_CONTACT.whatsappNumber}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm text-[#A1A1AA] hover:text-white transition-colors"
-                >
-                  <MessageCircle className="w-4 h-4 text-[#8B7CFF]" aria-hidden="true" />
-                  <span>WhatsApp ({STUDIO_CONTACT.whatsappDisplay})</span>
-                </a>
-              </li>
-              <li>
-                <a
                   href={`mailto:${STUDIO_CONTACT.email}`}
                   className="inline-flex items-center gap-2 text-sm text-[#A1A1AA] hover:text-white transition-colors break-all"
                 >
                   <Mail className="w-4 h-4 text-[#8B7CFF] shrink-0" aria-hidden="true" />
                   <span>{STUDIO_CONTACT.email}</span>
+                </a>
+              </li>
+              <li>
+                <a
+                  href={STUDIO_CONTACT.instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm text-[#A1A1AA] hover:text-white transition-colors"
+                >
+                  <Instagram className="w-4 h-4 text-[#8B7CFF] shrink-0" aria-hidden="true" />
+                  <span>Instagram ({STUDIO_CONTACT.instagramHandle})</span>
                 </a>
               </li>
             </ul>

@@ -1,15 +1,16 @@
 import heroShowcaseImg from '../assets/images/hero_studio_showcase_1794735689052.jpg';
 import hairsInnImg from '../assets/images/hairs_inn_bridal_1794735689157.jpg';
 import sizzleHouseImg from '../assets/images/sizzle_house_restaurant_1794764982969.jpg';
+import aurelleCoutureImg from '../assets/images/aurelle_indian_couture_1794994013559.jpg';
 import aboutStudioImg from '../assets/images/about_studio_space_1794735690314.jpg';
 
 /**
  * STUDIO CONTACT DETAILS
  */
 export const STUDIO_CONTACT = {
-  whatsappNumber: '919816548170',
-  whatsappDisplay: '+91 9816548170',
   email: 'hello.pixelcraft.webstudio@gmail.com',
+  instagramHandle: '@web.pixelcraftstudio',
+  instagramUrl: 'https://www.instagram.com/web.pixelcraftstudio/',
 } as const;
 
 /**
@@ -152,9 +153,31 @@ export const SIZZLE_HOUSE_PROJECT: WebsiteProjectItem = {
   previewCta: 'Explore Menu',
 };
 
+export const AURELLE_PROJECT: WebsiteProjectItem = {
+  id: 'aurelle-indian-couture-edit',
+  name: 'AURELLE – The Indian Couture Edit',
+  category: 'Website Design / Fashion & Boutique',
+  conceptLabel:
+    'AI-generated concept project by PixelCraft Studio · Not a commissioned client project',
+  description:
+    'A premium Indian fashion boutique website concept showcasing designer collections, bridal couture, new arrivals and custom-order enquiries.',
+  liveUrl: 'https://aurelle-indian-fashi-a4mk.bolt.host',
+  buttonLabel: 'View Live Website',
+  domainPreview: 'aurelle-indian-fashi-a4mk.bolt.host',
+  image: aurelleCoutureImg,
+  imageAlt:
+    'AURELLE – The Indian Couture Edit luxury Indian fashion and bridal couture boutique interior showcase',
+  previewTopNav: 'Collections · Bridal Couture · Custom Orders',
+  previewTagline: 'The Indian Couture Edit',
+  previewHeadline:
+    'Designer collections, bridal couture, and bespoke Indian silhouettes.',
+  previewCta: 'Explore Collection',
+};
+
 export const WEBSITE_PROJECTS: WebsiteProjectItem[] = [
   WEBSITE_PROJECT,
   SIZZLE_HOUSE_PROJECT,
+  AURELLE_PROJECT,
 ];
 
 export const VIDEO_PROJECT = {
@@ -239,7 +262,7 @@ export const WHY_CHOOSE_ITEMS: WhyChooseItem[] = [
     number: '04',
     title: 'Easy Customer Communication',
     description:
-      'Clear calls to action, structured enquiry pathways, and direct WhatsApp or email options make reaching you frictionless.',
+      'Clear calls to action, structured enquiry pathways, and direct email or Instagram options make reaching you frictionless.',
     iconName: 'messageSquare',
   },
   {
